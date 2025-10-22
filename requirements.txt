@@ -1,0 +1,14 @@
+# Python Traceroute - 依赖文件
+# 本项目仅使用 Python 标准库，无需额外安装依赖
+
+# Python 版本要求
+# python>=3.12
+
+# 标准库依赖（无需安装）:
+# - socket: 网络通信
+# - struct: 二进制数据打包/解包
+# - time: 时间测量
+# - sys: 系统相关
+# - os: 操作系统接口
+# - select: I/O多路复用
+
