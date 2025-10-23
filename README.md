@@ -1,275 +1,337 @@
-# Python Traceroute 实现
+# Python Traceroute - 非管理员版本
 
-一个纯 Python 实现的 traceroute/tracert 工具，使用标准库构建，支持跨平台运行。
+一个**无需管理员权限**的 Python traceroute 工具，提供路由追踪 + TCP 端口检测双重功能。
 
-> 🎉 **无需管理员权限！** 普通用户即可直接使用 → [快速开始](QUICKSTART.md)
+## ✨ 核心特性
 
-## 特性
+- 🔓 **无需管理员权限** - 普通用户即可运行
+- 🔍 **路由追踪** - 使用系统 traceroute/tracert (ICMP)
+- 🔌 **TCP 端口检测** - 对每一跳测试 TCP 连通性
+- 🎬 **实时输出** - 每一跳结果立即显示
+- 🌍 **跨平台** - Windows / Linux / macOS
+- 📦 **单文件** - 仅依赖 Python 标准库
 
-✅ **跨平台支持** - Windows、Linux、macOS  
-✅ **纯标准库** - 无需安装第三方依赖  
-✅ **完整功能** - TTL 递增、ICMP 协议、超时控制  
-✅ **可配置** - 最大跳数、超时时间、查询次数可调  
-✅ **易用** - 命令行界面友好  
-✅ **双模式** - 支持管理员模式和普通用户模式  
-✅ **实时输出** - 每一跳结果立即显示，体验流畅  
+## 🚀 快速开始
 
-## 系统要求
-
-- **Python**: 3.12 或更高版本
-- **权限**: 
-  - **推荐**: 管理员/root权限（原始套接字，性能更好）
-  - **支持**: 普通用户权限（调用系统命令）
-
-## 原理说明
-
-本程序实现了标准的 traceroute 功能：
-
-1. **TTL 递增**: 从 TTL=1 开始，逐跳递增发送 ICMP Echo Request 数据包
-2. **路由响应**: 当数据包 TTL 归零时，中间路由器返回 ICMP Time Exceeded 消息
-3. **路径追踪**: 记录每一跳的 IP 地址、主机名和响应时间（RTT）
-4. **到达检测**: 直到收到目标主机的 ICMP Echo Reply 或达到最大跳数
-
-## 使用方法
-
-### 🚀 方式一：智能模式（推荐）
-
-**自动选择最佳实现，普通用户即可运行：**
+### 基本用法
 
 ```bash
-# Windows - 直接运行（无需管理员权限）
-python trace.py www.google.com
+# 最简单的方式
+python3 trace.py www.baidu.com
 
-# Linux/macOS - 直接运行
-python3 trace.py www.google.com
+# 指定 HTTPS 端口检测
+python3 trace.py www.google.com -p 443
 
-# 自定义参数
-python trace.py baidu.com -m 15 -t 3
+# 仅路由追踪（不测试 TCP）
+python3 trace.py example.com --no-tcp
 ```
 
-程序会自动检测权限并选择：
-- ✅ 有管理员权限 → 使用高性能原始套接字实现
-- ✅ 普通用户权限 → 使用系统命令封装实现
-
----
-
-### 🔧 方式二：普通用户模式（无需管理员）
-
-**适合没有管理员权限的环境：**
+### 完整示例
 
 ```bash
-# Windows - 普通用户即可运行
-python traceroute_nonadmin.py www.google.com
+# 追踪到百度，检测 HTTP 端口
+python3 trace.py www.baidu.com -p 80
 
-# Linux/macOS - 普通用户即可运行
-python3 traceroute_nonadmin.py www.google.com
+# 追踪到 GitHub，检测 HTTPS 端口
+python3 trace.py github.com -p 443 -m 20
 
-# 自定义参数
-python traceroute_nonadmin.py 8.8.8.8 -m 20 -t 3
+# 追踪到服务器，检测 SSH 端口
+python3 trace.py server.example.com -p 22 -t 3
 ```
 
----
-
-### ⚡ 方式三：高性能模式（需要管理员）
-
-**原始套接字实现，性能最佳：**
-
-#### Windows
-
-```bash
-# 以管理员身份运行命令提示符或 PowerShell
-python traceroute.py www.google.com
-
-# 指定最大跳数
-python traceroute.py 8.8.8.8 -m 20
-
-# 自定义超时和查询次数
-python traceroute.py baidu.com -t 3 -q 2
-```
-
-#### Linux / macOS
-
-```bash
-# 使用 sudo 运行
-sudo python3 traceroute.py www.google.com
-
-# 或给予 Python 能力（推荐）
-sudo setcap cap_net_raw+ep $(which python3)
-python3 traceroute.py www.google.com
-```
-
-## 命令行参数
-
-| 参数 | 简写 | 说明 | 默认值 |
-|------|------|------|--------|
-| `--max-hops` | `-m` | 最大跳数 | 30 |
-| `--timeout` | `-t` | 超时时间（秒） | 2 |
-| `--queries` | `-q` | 每跳查询次数 | 3 |
-| `--help` | `-h` | 显示帮助信息 | - |
-
-## 输出示例
-
-**实时输出效果** - 每一跳完成后立即显示，无需等待全部完成
+## 📖 命令行参数
 
 ```
-traceroute to www.google.com (142.250.185.100), 30 hops max
+python3 trace.py <目标主机> [选项]
 
- 1  192.168.1.1  1.23 ms  1.10 ms  1.05 ms        ← 第1跳立即显示
- 2  10.255.255.1  8.45 ms  7.89 ms  8.12 ms       ← 第2跳立即显示
- 3  61.148.143.1  12.34 ms  11.98 ms  12.10 ms    ← 逐行实时显示
- 4  202.97.33.106  15.67 ms  15.23 ms  *
- 5  202.97.50.118  28.45 ms  28.12 ms  27.98 ms
+必需:
+  <目标>              目标主机名或 IP 地址
+
+选项:
+  -p, --port <端口>   TCP 检测端口 (默认: 80)
+  -m, --max-hops <数> 最大跳数 (默认: 30)
+  -t, --timeout <秒>  超时时间 (默认: 2)
+  --no-tcp            禁用 TCP 端口检测
+  -h, --help          显示帮助信息
+```
+
+## 💡 工作原理
+
+### 1. 路由追踪（ICMP）
+
+使用系统命令进行标准的 traceroute：
+- **Windows**: 调用 `tracert` 命令
+- **Linux/macOS**: 调用 `traceroute` 命令
+- **协议**: ICMP Echo Request
+- **权限**: 无需管理员（系统命令已有权限）
+
+### 2. TCP 端口检测
+
+对每一跳的路由器进行 TCP 连接测试：
+- 使用标准 TCP socket（无需特殊权限）
+- 测试指定端口的连通性
+- 返回连接状态：开放 / 关闭 / 超时
+
+### 3. 合并显示
+
+实时显示两种检测结果：
+```
+1  192.168.1.1      1.2 ms  1.1 ms  1.0 ms  | TCP:80 ✗ 关闭
+2  10.255.255.1     8.4 ms  7.9 ms  8.1 ms  | TCP:80 - 超时
+3  61.148.143.1    12.3 ms 12.0 ms 12.1 ms  | TCP:80 ✓ 45.2ms
+```
+
+## 📊 输出示例
+
+```
+================================================================================
+  Python Traceroute - 非管理员模式
+  路由追踪 + TCP 端口检测
+================================================================================
+
+🔍 开始路由追踪: www.baidu.com (110.242.68.66)
+📊 最大跳数: 30, 超时: 2秒
+🔌 TCP 端口检测: 80
+================================================================================
+
+执行: traceroute -m 30 -w 2 -q 3 www.baidu.com
+
+ 1  192.168.1.1      1.234 ms  1.123 ms  1.056 ms  | TCP:80 ✗ 关闭
+ 2  10.255.255.1     8.456 ms  7.890 ms  8.123 ms  | TCP:80 - 超时
+ 3  61.148.143.1    12.345 ms 11.987 ms 12.101 ms  | TCP:80 - 超时
+ 4  202.97.33.106   15.678 ms 15.234 ms 16.012 ms  | TCP:80 - 超时
+ 5  202.97.50.118   28.456 ms 28.123 ms 27.987 ms  | TCP:80 - 超时
  ...
-12  142.250.185.100  35.23 ms  34.89 ms  35.01 ms
+12  110.242.68.66   35.234 ms 34.890 ms 35.012 ms  | TCP:80 ✓ 35.5ms
 
-到达目标: www.google.com (142.250.185.100)
+================================================================================
+
+🎯 目标主机 TCP 端口测试:
+   主机: www.baidu.com (110.242.68.66)
+   端口: 80
+   状态: ✅ 端口开放
+   响应时间: 35.23 ms
 ```
 
-## 输出说明
+## 🎯 使用场景
 
-- **数字**: 跳数（TTL 值）
-- **IP/主机名**: 该跳路由器的地址
-- **时间**: 往返时间（RTT），单位毫秒（ms）
-- **星号(*)**: 该次查询超时，未收到响应
+### 场景 1: 网络诊断
 
-## 技术细节
-
-### ICMP 数据包结构
-
-```
-ICMP Echo Request:
-┌─────────┬──────┬──────────┬────────┬──────────┐
-│  Type   │ Code │ Checksum │   ID   │ Sequence │
-│ (8/1B)  │(0/1B)│  (2B)    │ (2B)   │  (2B)    │
-└─────────┴──────┴──────────┴────────┴──────────┘
-```
-
-### 核心实现
-
-1. **socket.SOCK_RAW**: 创建原始套接字
-2. **socket.IPPROTO_ICMP**: 使用 ICMP 协议
-3. **IP_TTL**: 设置 Time To Live 值
-4. **struct**: 打包/解包二进制数据
-5. **select**: 实现跨平台超时控制
-
-## 常见问题
-
-### Q: 没有管理员权限怎么办？
-
-**A**: 使用普通用户模式：
 ```bash
-# 方式一：智能模式（自动选择）
-python trace.py www.google.com
+# 检查到服务器的网络路径
+python3 trace.py your-server.com
 
-# 方式二：直接使用普通用户模式
-python traceroute_nonadmin.py www.google.com
+# 检查每一跳的延迟
+python3 trace.py 8.8.8.8
 ```
-无需任何特殊权限，直接运行即可！
 
-### Q: 提示权限错误？
+### 场景 2: Web 服务检测
 
-**A**: 如果使用 `traceroute.py` 提示权限错误，有两个选择：
-1. **切换到普通用户模式**（推荐）：使用 `trace.py` 或 `traceroute_nonadmin.py`
-2. **获取管理员权限**：
-   - **Windows**: 右键"以管理员身份运行"命令提示符
-   - **Linux/Mac**: 使用 `sudo` 运行
+```bash
+# 检测 HTTP 服务路径
+python3 trace.py www.example.com -p 80
 
-### Q: 为什么有些跳显示 `*` ？
+# 检测 HTTPS 服务路径
+python3 trace.py www.example.com -p 443
+```
 
-**A**: 可能原因：
-1. 路由器配置禁止 ICMP Time Exceeded 响应
-2. 防火墙过滤了 ICMP 包
-3. 网络超时或拥塞
-4. 路由器优先级设置较低
+### 场景 3: 服务器端口检测
 
-### Q: Windows 防火墙拦截？
+```bash
+# 检测 SSH 端口
+python3 trace.py server.com -p 22
 
+# 检测数据库端口
+python3 trace.py db.server.com -p 3306
+
+# 检测多个端口（多次运行）
+python3 trace.py server.com -p 80
+python3 trace.py server.com -p 443
+python3 trace.py server.com -p 22
+```
+
+### 场景 4: 快速测试
+
+```bash
+# 限制 10 跳快速测试
+python3 trace.py target.com -m 10
+
+# 仅路由追踪，不测 TCP
+python3 trace.py target.com --no-tcp
+```
+
+## 🔍 TCP 检测结果说明
+
+| 状态 | 说明 | 显示 |
+|------|------|------|
+| **✓ 开放** | TCP 端口开放，连接成功 | `TCP:80 ✓ 35.5ms` |
+| **✗ 关闭** | 主机可达，但端口关闭 | `TCP:80 ✗ 关闭` |
+| **超时** | 连接超时，可能被防火墙阻止 | `TCP:80 - 超时` |
+| **不可达** | 主机不可达 | `TCP:80 - 不可达` |
+
+## 📌 常用端口
+
+| 端口 | 服务 | 用途 |
+|------|------|------|
+| 80 | HTTP | Web 服务（默认） |
+| 443 | HTTPS | 加密 Web 服务 |
+| 22 | SSH | 远程登录 |
+| 21 | FTP | 文件传输 |
+| 25 | SMTP | 邮件发送 |
+| 3306 | MySQL | 数据库 |
+| 5432 | PostgreSQL | 数据库 |
+| 6379 | Redis | 缓存数据库 |
+| 27017 | MongoDB | 文档数据库 |
+
+## ❓ 常见问题
+
+### Q: 需要管理员权限吗？
+**A**: 不需要！程序使用系统命令进行路由追踪，TCP 检测使用标准 socket，都无需特殊权限。
+
+### Q: 可以同时测试多个端口吗？
+**A**: 当前版本一次只能测试一个端口，可以多次运行测试不同端口：
+```bash
+python3 trace.py target.com -p 80
+python3 trace.py target.com -p 443
+python3 trace.py target.com -p 22
+```
+
+### Q: 为什么有些跳的 TCP 显示超时？
+**A**: 原因可能是：
+1. 中间路由器不响应 TCP 连接（正常）
+2. 防火墙屏蔽了该端口
+3. 路由器不提供该服务
+
+这是正常现象，只要目标主机能测试成功即可。
+
+### Q: 如何只进行路由追踪？
+**A**: 使用 `--no-tcp` 参数：
+```bash
+python3 trace.py target.com --no-tcp
+```
+
+### Q: Windows 上如何使用？
+**A**: 完全相同的命令：
+```bash
+python trace.py target.com -p 80
+```
+
+### Q: 找不到 traceroute 命令？
 **A**: 
-1. 确保以管理员身份运行
-2. 检查 Windows Defender 防火墙规则
-3. 临时关闭防火墙测试（不推荐）
+- **Windows**: 系统自带 `tracert`，无需安装
+- **Linux**: `sudo apt-get install traceroute` 或 `yum install traceroute`
+- **macOS**: 系统自带
 
-### Q: 与系统 tracert/traceroute 结果不同？
+## 🔧 系统要求
 
-**A**: 正常现象，可能原因：
-- 网络路径动态变化（负载均衡）
-- 查询时间点不同
-- 协议实现细节差异（ICMP vs UDP vs TCP）
+- **Python**: 3.6+ (推荐 3.12+)
+- **操作系统**: Windows 10+ / Linux / macOS
+- **权限**: 普通用户权限
+- **依赖**: 仅 Python 标准库
+- **系统命令**: 
+  - Windows: `tracert` (系统自带)
+  - Linux/macOS: `traceroute` (可能需要安装)
 
-## 代码结构
+## 📁 项目结构
 
 ```
 pytracer/
-├── trace.py                  # 智能入口（推荐使用）
-├── traceroute_nonadmin.py   # 普通用户模式（无需管理员）
-├── traceroute.py            # 高性能模式（需要管理员）
-├── example.bat              # Windows 测试脚本
-├── requirements.txt         # 依赖说明（仅标准库）
-├── .gitignore              # Git 忽略文件
-└── README.md               # 本文档
+├── trace.py              # 主程序（唯一核心文件）
+├── README.md             # 本文档
+├── requirements.txt      # 依赖说明（仅标准库）
+└── examples.sh          # 使用示例（Linux/macOS）
 ```
 
-### 文件说明
+## 🎨 技术特点
 
-1. **trace.py** - 智能入口脚本
-   - 自动检测权限
-   - 选择最佳实现方式
-   - 推荐日常使用
+### 1. 无需权限方案
 
-2. **traceroute_nonadmin.py** - 普通用户模式
-   - ✅ 无需管理员权限
-   - 调用系统 tracert/traceroute 命令
-   - 解析并美化输出
+- **路由追踪**: 使用系统命令（已有权限）
+- **TCP 检测**: 使用标准 socket.connect()（无需权限）
+- **实时解析**: 解析系统命令输出
 
-3. **traceroute.py** - 高性能模式
-   - ⚡ 原始套接字实现
-   - 完全自主的 ICMP 协议处理
-   - 需要管理员/root权限
+### 2. 双重检测
 
-### 主要类和方法
+- **ICMP 层**: 网络层路径追踪
+- **TCP 层**: 传输层端口连通性
+- **合并显示**: 一目了然的结果
 
-#### traceroute.py (高性能模式)
-- `Traceroute`: 核心类
-  - `checksum()`: 计算 ICMP 校验和
-  - `create_icmp_packet()`: 构造 ICMP 数据包
-  - `parse_icmp_header()`: 解析 ICMP 响应
-  - `send_probe()`: 发送探测包并接收响应
-  - `trace()`: 执行完整的路径追踪
+### 3. 实时输出
 
-#### traceroute_nonadmin.py (普通用户模式)
-- `TracerouteNonAdmin`: 核心类
-  - `build_command()`: 构建系统命令
-  - `parse_windows_output()`: 解析 Windows 输出
-  - `parse_unix_output()`: 解析 Unix 输出
-  - `trace()`: 执行路径追踪
+- 逐行解析 traceroute 输出
+- 实时进行 TCP 检测
+- 立即显示结果
 
-## 许可证
+## 💡 最佳实践
 
-本项目使用标准库实现，可自由使用和修改。
+### 日常使用
 
-## 注意事项
+```bash
+# 推荐：自动测试常用端口
+python3 trace.py target.com          # HTTP (80)
+python3 trace.py target.com -p 443   # HTTPS
+```
 
-⚠️ **仅供学习和合法网络诊断使用**  
-⚠️ **请勿用于未授权的网络扫描或攻击**  
-⚠️ **遵守当地法律法规和网络使用政策**
+### 服务器诊断
 
-## 更新日志
+```bash
+# 完整检测
+python3 trace.py server.com -p 22 -m 20 -t 3
+```
 
-### v1.0.0 (2025-10-22)
-- ✅ 初始版本
-- ✅ 实现基本 traceroute 功能
-- ✅ 支持 Windows/Linux/macOS
-- ✅ 命令行参数解析
-- ✅ ICMP 协议实现
-- ✅ 超时和重试机制
+### 批量测试脚本
 
-## 贡献
+```bash
+#!/bin/bash
+TARGET="your-server.com"
 
-欢迎提交 Issue 和 Pull Request！
+echo "测试 HTTP..."
+python3 trace.py $TARGET -p 80 -m 15
 
-## 参考资料
+echo ""
+echo "测试 HTTPS..."
+python3 trace.py $TARGET -p 443 -m 15
 
-- [RFC 792 - ICMP Protocol](https://tools.ietf.org/html/rfc792)
-- [RFC 1122 - Internet Host Requirements](https://tools.ietf.org/html/rfc1122)
-- [Traceroute - Wikipedia](https://en.wikipedia.org/wiki/Traceroute)
+echo ""
+echo "测试 SSH..."
+python3 trace.py $TARGET -p 22 -m 15
+```
 
+## 🎉 快速开始
+
+```bash
+# 1. 测试百度
+python3 trace.py www.baidu.com
+
+# 2. 测试 GitHub (HTTPS)
+python3 trace.py github.com -p 443
+
+# 3. 测试 Google DNS
+python3 trace.py 8.8.8.8
+
+# 4. 查看帮助
+python3 trace.py -h
+```
+
+## 🔒 安全提示
+
+⚠️ **仅供合法用途**:
+- ✅ 网络诊断和故障排查
+- ✅ 自己服务器的连通性测试
+- ✅ 学习和教育
+- ❌ 未授权的网络扫描
+- ❌ 端口扫描攻击
+
+**请遵守当地法律法规！**
+
+## 📝 许可证
+
+MIT License - 可自由使用和修改
+
+---
+
+**立即开始！** 🚀
+
+```bash
+python3 trace.py www.google.com -p 443
+```

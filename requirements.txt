@@ -1,14 +1,23 @@
-# Python Traceroute - 依赖文件
-# 本项目仅使用 Python 标准库，无需额外安装依赖
-
-# Python 版本要求
-# python>=3.12
-
-# 标准库依赖（无需安装）:
-# - socket: 网络通信
-# - struct: 二进制数据打包/解包
+# Python Traceroute - 非管理员版本
+# 
+# 本项目仅使用 Python 标准库，无需安装任何第三方依赖
+#
+# Python 版本要求: 3.6+（推荐 3.12+）
+#
+# 标准库模块（无需安装）:
+# - socket: 网络通信和 TCP 连接测试
+# - subprocess: 调用系统 traceroute/tracert 命令
+# - sys: 系统相关功能
 # - time: 时间测量
-# - sys: 系统相关
-# - os: 操作系统接口
-# - select: I/O多路复用
-
+# - re: 正则表达式解析
+# - threading: 多线程处理
+# - concurrent.futures: 并发执行（备用）
+#
+# 系统要求:
+# - Windows: 自带 tracert 命令
+# - Linux: 需要安装 traceroute (apt-get install traceroute)
+# - macOS: 自带 traceroute 命令
+#
+# 权限要求:
+# - 无需管理员/root 权限
+# - 普通用户即可运行
